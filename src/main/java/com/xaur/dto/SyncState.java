@@ -1,0 +1,5 @@
+package com.xaur.dto;
+
+public enum SyncState {
+    IDLE, LISTING_USERS, SYNCING_USER_DATA, SYNCING_PHOTO, SYNCING_FACE, SYNCING_FINGERS
+}
