@@ -69,7 +69,8 @@ public class UserService {
         return userRepository.findByUserIdAndDeviceSerialNumber(userId, deviceSerialNumber);
     }
 
-    @Scheduled(fixedRate = 300000)
+    @Scheduled(fixedRate = 120000
+    )
     public void bulkUpload() throws InterruptedException {
         List<BulkUser> list=bulkUserRepository.find("PENDING");
 

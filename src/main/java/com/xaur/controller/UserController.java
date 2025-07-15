@@ -1,8 +1,10 @@
 package com.xaur.controller;
 
 import com.xaur.dto.*;
+import com.xaur.model.BulkUser;
 import com.xaur.model.ScheduledCommand;
 import com.xaur.model.User;
+import com.xaur.repository.BulkUserRepository;
 import com.xaur.service.ScheduledCommandService;
 import com.xaur.service.UserCommandService;
 import com.xaur.service.UserCopyService;
@@ -23,9 +25,17 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.openxmlformats.schemas.spreadsheetml.x2006.main.WorkbookDocument;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -47,6 +57,7 @@ public class UserController {
     private final UserFaceDataService userFaceDataService;
     private final UserFingerDataService userFingerDataService;
     private final UserCopyService userCopyService;
+    private final BulkUserRepository bulkUserRepository;
 
     @Operation(summary = "Get users by device", description = "Retrieve all users associated with a specific device")
     @ApiResponses({
@@ -350,10 +361,51 @@ if(userService.getUserByIdAndDeviceSerialNumber(userId,deviceSerialNumber).isPre
 
     @PostMapping("/bulk")
 
-    public void bulkUserUpload(@RequestBody List<BulkUserDTO> bulkUsers){
+    public void bulkUserUpload(@RequestPart("file")  MultipartFile file) throws IOException {
 
-        userService.userList(bulkUsers);
+        Workbook workbook = new XSSFWorkbook(file.getInputStream());
+
+        Sheet sheet = workbook.getSheetAt(0);
+        int rowNumber = 0;
+        List<BulkUser> bulkUserList=new ArrayList<>();
+
+
+        for (Row row : sheet) {
+            if (rowNumber == 0) {
+                rowNumber++; // Skip header
+                continue;
+
+
+            }
+
+            BulkUser user = new BulkUser();
+            user.setName(row.getCell(2).getStringCellValue());
+            user.setDevice_serial_number(row.getCell(1).getStringCellValue());
+            user.setEnabled(true);
+            user.setPrivilege("User");
+            user.setUser_period_used(false);
+
+      double id=      row.getCell(4).getNumericCellValue();
+            user.setUser_id(String.valueOf(id));
+            user.setStatus("PENDING");
+            user.setDepartment(0);
+
+
+bulkUserList.add(user);
+
+
+            //  userService.userList();
     }
+
+        bulkUserRepository.saveAll(bulkUserList);
+
+
+
+    }
+
+
+
+
 
 
 

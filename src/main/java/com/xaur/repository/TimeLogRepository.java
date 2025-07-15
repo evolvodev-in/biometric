@@ -22,8 +22,8 @@ public interface TimeLogRepository extends JpaRepository<TimeLog, Long> {
     Integer countOfLogTime(List<String> list,LocalDate date);
     @Query(nativeQuery = true,value = "select * from time_logs where date(log_time) between :start and :end")
     List<TimeLog> findByDateRange(LocalDate start,LocalDate end);
-    @Query(nativeQuery = true,value = "select * from time_logs where device_serial_number=:deviceSerialNumber and date(log_time) between :start and :end")
-    List<TimeLog> findByDeviceSerialNumberAndDate(String deviceSerialNumber,LocalDate start,LocalDate end);
+    @Query(nativeQuery = true,value = " SELECT * FROM time_logs WHERE device_serial_number = :deviceSerialNumber AND (:userId is null or user_id=:userId)and (:start IS NULL or DATE(log_time)>=:start) and(:end is null or DATE(log_time)<=:end)")
+    List<TimeLog> findByDeviceSerialNumberAndDate(String deviceSerialNumber,LocalDate start,LocalDate end,String userId);
     @Query(nativeQuery = true,value = "select * from time_logs where user_id=:userId and date(log_time) between :start and :end")
     List<TimeLog> findByUserIdrAndDate(String userId,LocalDate start,LocalDate end);
 

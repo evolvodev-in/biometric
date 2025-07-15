@@ -125,7 +125,7 @@ public class DeviceStatusService {
     }
 
     
-    @Scheduled(fixedRate = 900000) 
+    @Scheduled(fixedRate = 120000)
     public void scheduledDeviceStatusQuery() {
         log.info("Starting scheduled device status query");
         sessionManager.getAllSessions().values().forEach(session -> {

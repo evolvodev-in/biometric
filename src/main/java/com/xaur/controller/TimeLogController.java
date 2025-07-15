@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -120,90 +121,31 @@ public class TimeLogController {
         return ResponseEntity.ok(timeLogService.getLogsbyUserIdAndDeviceSerialNumberAndTime(userId,deviceSerialNumber,startDate,endDate));
     }
 
-
     @GetMapping("/logs")
-    public ResponseEntity<?> logs(@RequestParam(name = "userId",required = false) String userId,
-                                  @RequestParam(name = "deviceSerialNo" ,required = false) String deviceSerialNo,
-                                  @RequestParam(name = "startDate",required = false) String startDate,
-                                  @RequestParam(name = "endDate",required = false) String endDate){
+    public ResponseEntity<List<TimeLog>> logs(@RequestParam(name = "userId",required = false) String userId,
+                                              @RequestParam(name = "deviceSerialNo" ,required = false) String deviceSerialNo,
+                                              @RequestParam(name = "startDate",required = false) String startDate,
+                                              @RequestParam(name = "endDate",required = false) String endDate){
+LocalDate start=null;
+LocalDate end=null;
 
-        if(userId==null&&deviceSerialNo==null&&startDate==null&&endDate==null){
-            return getAllAttendanceLogs();
-        }
-        else if (userId!=null&&deviceSerialNo!=null&&startDate!=null&&endDate!=null) {
-            List<TimeLog> list=timeLogService.getLogsbyUserIdAndDeviceSerialNumberAndTime(userId,deviceSerialNo,
-                    LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE),LocalDate.parse(endDate, DateTimeFormatter.ISO_DATE));
-            for(TimeLog timeLog:list){
-                Optional<User> user=userRepository.findByUserIdAndDeviceSerialNumber(timeLog.getUserId(), timeLog.getDeviceSerialNumber());
-                user.ifPresent(value -> timeLog.setUserName(value.getName()));
-            }
+        if(startDate!=null)
+         start=LocalDate.parse(startDate);
 
-            return ResponseEntity.ok(list);
-        }
+        if (endDate !=null)
+            end=LocalDate.parse(endDate);
+        List<TimeLog> list=timeLogRepository.findByDeviceSerialNumberAndDate(deviceSerialNo,start,end,userId);
 
-        else if(userId!=null&&deviceSerialNo!=null&&startDate==null&&endDate==null){
-            return getAttendanceLogsByUser(userId,deviceSerialNo);
-
-
-        }
-        else if(deviceSerialNo!=null && startDate!=null&&endDate!=null){
-            List<TimeLog> list=timeLogRepository.findByDeviceSerialNumberAndDate(deviceSerialNo,
-                    LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE),LocalDate.parse(endDate, DateTimeFormatter.ISO_DATE));
-            for(TimeLog timeLog:list){
-                Optional<User> user=userRepository.findByUserIdAndDeviceSerialNumber(timeLog.getUserId(), timeLog.getDeviceSerialNumber());
-                user.ifPresent(value -> timeLog.setUserName(value.getName()));
-            }
-            return ResponseEntity.ok(list );}
-        else if(userId!=null && startDate!=null&&endDate!=null){
-            List<TimeLog> list=timeLogRepository.findByUserIdrAndDate(userId,
-                    LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE),LocalDate.parse(endDate, DateTimeFormatter.ISO_DATE));
-            for(TimeLog timeLog:list){
-                Optional<User> user=userRepository.findByUserIdAndDeviceSerialNumber(timeLog.getUserId(), timeLog.getDeviceSerialNumber());
-                user.ifPresent(value -> timeLog.setUserName(value.getName()));
-            }
-            return ResponseEntity.ok(list );}
-
-
-
-
-
-
-
-
-
-
-
-
-        else if (deviceSerialNo!=null&&userId==null&&startDate==null&&endDate==null) {
-            return getAttendanceLogsByDevice(deviceSerialNo);
-
-        } else if (userId==null&&deviceSerialNo==null&&startDate!=null&&endDate!=null) {
-            List<TimeLog> list= timeLogRepository.findByDateRange(LocalDate.parse(startDate, DateTimeFormatter.ISO_DATE),LocalDate.parse(endDate, DateTimeFormatter.ISO_DATE));
-            for(TimeLog timeLog:list){
-                Optional<User> user=userRepository.findByUserIdAndDeviceSerialNumber(timeLog.getUserId(), timeLog.getDeviceSerialNumber());
-                user.ifPresent(value -> timeLog.setUserName(value.getName()));
-            }
-
-
-            return ResponseEntity.ok(list);
+        for(TimeLog timeLog:list){
+            Optional<User> user=userRepository.findByUserIdAndDeviceSerialNumber(timeLog.getUserId(), timeLog.getDeviceSerialNumber());
+            user.ifPresent(value -> timeLog.setUserName(value.getName()));
         }
 
 
-        if(userId!=null&&startDate==null&&endDate==null&&deviceSerialNo==null
-
-        ){
-            List<TimeLog> list=timeLogRepository.findByUserId(userId);
-            for(TimeLog timeLog:list){
-                Optional<User> user=userRepository.findByUserIdAndDeviceSerialNumber(timeLog.getUserId(), timeLog.getDeviceSerialNumber());
-                user.ifPresent(value -> timeLog.setUserName(value.getName()));
-            }
-            return ResponseEntity.ok(list );}
+        return  ResponseEntity.ok(list );
 
 
-
-        return  ResponseEntity.ok("params req");
     }
-
 
 
 

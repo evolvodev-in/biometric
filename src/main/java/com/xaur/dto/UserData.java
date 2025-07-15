@@ -24,6 +24,7 @@ public class UserData {
     private String card;
     private String password;
     private String faceData;
+
     private Boolean allowNoCertificate;
     private Integer Department;
 }
